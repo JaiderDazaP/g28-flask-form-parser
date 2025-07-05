@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>G-28 Extracted Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #search {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .match {
+            background-color: #ffffcc;
+        }
+    </style>
+</head>
+<body>
+    <h1>G-28 Extracted JSON</h1>
+    <input type="text" id="search" placeholder="Search by key (e.g., MobileTelep)">
+    <table>
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="json-table">
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('/api/json', {
+                headers: {
+                    'Authorization': 'Basic ' + btoa('admin:admin')
+                }
+            });
+            const data = await response.json();
+            return data;
+        }
+
+        function renderTable(data, filter = "") {
+            const table = document.getElementById("json-table");
+            table.innerHTML = "";
+
+            Object.entries(data).forEach(([key, value]) => {
+                const match = key.toLowerCase().includes(filter.toLowerCase());
+                if (filter === "" || match) {
+                    const row = document.createElement("tr");
+                    if (match) row.classList.add("match");
+
+                    const keyCell = document.createElement("td");
+                    const valueCell = document.createElement("td");
+                    keyCell.textContent = key;
+                    valueCell.textContent = value ?? "";
+
+                    row.appendChild(keyCell);
+                    row.appendChild(valueCell);
+                    table.appendChild(row);
+                }
+            });
+        }
+
+        document.getElementById("search").addEventListener("input", async (e) => {
+            const filter = e.target.value;
+            const data = await fetchData();
+            renderTable(data, filter);
+        });
+
+        window.onload = async () => {
+            const data = await fetchData();
+            renderTable(data);
+        };
+    </script>
+</body>
+</html>
